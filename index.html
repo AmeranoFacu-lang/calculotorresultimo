@@ -1,0 +1,1715 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cálculo Torres</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'sf': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'San Francisco', 'Segoe UI', 'Roboto', 'sans-serif']
+          },
+          colors: {
+            'apple-gray': '#f5f5f7',
+            'apple-dark': '#1d1d1f',
+            'apple-blue': '#0071e3',
+            'apple-blue-hover': '#0077ed',
+            'apple-card': 'rgba(255,255,255,0.8)',
+            'apple-border': 'rgba(0,0,0,0.1)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .glass { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    .input-apple {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .input-apple:focus {
+      box-shadow: 0 0 0 4px rgba(0,113,227,0.3);
+      border-color: #0071e3;
+    }
+    .btn-primary {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(180deg, #0077ed 0%, #0071e3 100%);
+    }
+    .btn-primary:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 20px rgba(0,113,227,0.4);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .card-apple {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,0,0,0.08);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-apple:hover {
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+    .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-up { animation: slideUp 0.5s ease-out forwards; }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .warning-pulse { animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .tab-active {
+      background: linear-gradient(180deg, #0077ed 0%, #0071e3 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(0,113,227,0.3);
+    }
+    .number-input::-webkit-inner-spin-button,
+    .number-input::-webkit-outer-spin-button { opacity: 1; }
+    .tooltip {
+      position: relative;
+    }
+    .tooltip::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1d1d1f;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      margin-bottom: 8px;
+    }
+    .tooltip:hover::after { opacity: 1; }
+    svg text { font-family: 'Inter', sans-serif; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-apple-gray font-sf text-apple-dark overflow-auto">
+  <div id="app" class="min-h-full w-full"><!-- Header -->
+   <header class="glass bg-white/80 sticky top-0 z-50 border-b border-apple-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+     <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+       <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-apple-blue to-blue-600 flex items-center justify-center shadow-lg">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+       </div>
+       <div>
+        <h1 id="app-title" class="text-xl font-semibold tracking-tight">Torre Arriostrada Designer</h1>
+        <p id="app-subtitle" class="text-xs text-gray-500">Predimensionamiento según CIRSOC 101/102</p>
+       </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 text-xs text-gray-500"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">Argentina</span> <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">v1.0</span>
+      </div>
+     </div>
+    </div>
+   </header><!-- Tab Navigation -->
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex gap-2 p-1.5 bg-white rounded-2xl shadow-sm border border-apple-border w-fit mx-auto"><button id="tab1" onclick="setTab(1)" class="px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 tab-active"> <span class="flex items-center gap-2">
+       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+       </svg> Configuración </span> </button> <button id="tab2" onclick="setTab(2)" class="px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 text-gray-600 hover:bg-gray-100"> <span class="flex items-center gap-2">
+       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+       </svg> Evaluación Técnica </span> </button>
+    </div>
+   </div><!-- Stage 1: Configuration -->
+   <div id="stage1" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div class="grid lg:grid-cols-2 gap-8"><!-- Input Panel -->
+     <div class="space-y-6 fade-in"><!-- Tower Height Card -->
+      <div class="card-apple rounded-3xl p-6">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-apple-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+         </svg></span> Altura de Torre</h3>
+       <div class="flex items-center gap-4"><input type="range" id="towerHeight" min="9" max="60" value="30" step="3" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-apple-blue" oninput="updateTowerHeight(this.value)">
+        <div class="flex items-center gap-2 bg-gray-100 rounded-xl px-4 py-2"><input type="number" id="towerHeightInput" value="30" min="9" max="60" step="3" class="w-16 bg-transparent text-center font-semibold text-lg number-input outline-none" onchange="updateTowerHeight(this.value)"> <span class="text-gray-500 font-medium">m</span>
+        </div>
+       </div>
+       <p class="text-xs text-gray-500 mt-3">Altura total de la estructura (mínimo 9m, máximo 60m)</p>
+      </div><!-- Anchor Configuration -->
+      <div class="card-apple rounded-3xl p-6">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+         </svg></span> Configuración de Anclajes</h3>
+       <div class="flex gap-3 mb-6"><button id="anchor3" onclick="setAnchors(3)" class="flex-1 py-4 rounded-2xl border-2 border-apple-blue bg-blue-50 text-apple-blue font-semibold transition-all duration-300">
+         <div class="text-2xl mb-1">
+          3
+         </div>
+         <div class="text-xs opacity-80">
+          Anclajes (120°)
+         </div></button> <button id="anchor4" onclick="setAnchors(4)" class="flex-1 py-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-600 font-semibold transition-all duration-300 hover:border-gray-300">
+         <div class="text-2xl mb-1">
+          4
+         </div>
+         <div class="text-xs opacity-80">
+          Anclajes (90°)
+         </div></button>
+       </div><!-- Warning -->
+       <div id="anchorWarning" class="hidden mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl warning-pulse">
+        <div class="flex items-start gap-3">
+         <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+         </svg>
+         <div>
+          <p class="font-semibold text-amber-800 text-sm">Recomendación de estabilidad</p>
+          <p class="text-xs text-amber-700 mt-1">Distancia menor al 40% de la altura. Se recomiendan 4 anclajes para mayor estabilidad estructural según CIRSOC.</p>
+         </div>
+        </div>
+       </div><!-- Anchor Points -->
+       <div id="anchorInputs" class="space-y-4"></div>
+      </div><!-- Guy Wire Levels -->
+      <div class="card-apple rounded-3xl p-6">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+         </svg></span> Niveles de Rienda</h3>
+       <div class="flex items-center gap-4 mb-4"><button onclick="changeGuyLevels(-1)" class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+         </svg></button>
+        <div class="flex-1 text-center"><span id="guyLevelCount" class="text-3xl font-bold text-apple-blue">3</span> <span class="text-gray-500 ml-1">niveles</span>
+        </div><button onclick="changeGuyLevels(1)" class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+         </svg></button>
+       </div>
+       <div id="guyLevelInputs" class="space-y-3"></div>
+      </div><!-- Wind Zone Selection -->
+      <div class="card-apple rounded-3xl p-6">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 14l4-4m0 0l4 4m-4-4l-4 4m4-4l4-4M3.172 5.172a4 4 0 015.656 0M19 8a2 2 0 11-4 0 2 2 0 014 0z" />
+         </svg></span> Viento en Zona</h3>
+       <div class="grid grid-cols-2 gap-3"><button id="windLow" onclick="setWindZone('bajo')" class="py-4 rounded-2xl border-2 border-cyan-200 bg-white text-gray-600 font-semibold transition-all duration-300 hover:border-cyan-300">
+         <div class="text-2xl mb-1">
+          🌤️
+         </div>
+         <div class="text-xs opacity-80">
+          Bajo (≤60 km/h)
+         </div></button> <button id="windMedium" onclick="setWindZone('medio')" class="py-4 rounded-2xl border-2 border-cyan-200 bg-white text-gray-600 font-semibold transition-all duration-300 hover:border-cyan-300">
+         <div class="text-2xl mb-1">
+          ⛈️
+         </div>
+         <div class="text-xs opacity-80">
+          Medio (61-90 km/h)
+         </div></button> <button id="windHigh" onclick="setWindZone('alto')" class="py-4 rounded-2xl border-2 border-cyan-200 bg-white text-gray-600 font-semibold transition-all duration-300 hover:border-cyan-300">
+         <div class="text-2xl mb-1">
+          💨
+         </div>
+         <div class="text-xs opacity-80">
+          Alto (91-120 km/h)
+         </div></button> <button id="windExtreme" onclick="setWindZone('extremo')" class="py-4 rounded-2xl border-2 border-cyan-200 bg-white text-gray-600 font-semibold transition-all duration-300 hover:border-cyan-300">
+         <div class="text-2xl mb-1">
+          🌪️
+         </div>
+         <div class="text-xs opacity-80">
+          Extremo (&gt;120 km/h)
+         </div></button>
+       </div>
+       <p class="text-xs text-gray-500 mt-3">Según CIRSOC 101/102 - Reglamentación de Cargas de Viento</p>
+      </div>
+     </div><!-- Visualization Panel -->
+     <div class="space-y-6 fade-in" style="animation-delay: 0.2s;"><!-- Side View -->
+      <div class="card-apple rounded-3xl p-6">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+         </svg></span> Vista Lateral</h3>
+       <div id="sideView" class="bg-gradient-to-b from-sky-50 to-gray-50 rounded-2xl overflow-hidden" style="height: 400px;">
+        <svg id="sideViewSvg" viewbox="0 0 500 400" class="w-full h-full"></svg>
+       </div>
+      </div><!-- Plan View -->
+      <div class="card-apple rounded-3xl p-6">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+         </svg></span> Vista en Planta</h3>
+       <div id="planView" class="bg-gradient-to-br from-gray-50 to-slate-100 rounded-2xl overflow-hidden" style="height: 300px;">
+        <svg id="planViewSvg" viewbox="0 0 400 300" class="w-full h-full"></svg>
+       </div>
+      </div><!-- Quick Stats -->
+      <div class="grid grid-cols-2 gap-4">
+       <div class="card-apple rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-apple-blue" id="statRatio">
+         43%
+        </div>
+        <div class="text-xs text-gray-500 mt-1">
+         Ratio D/H
+        </div>
+       </div>
+       <div class="card-apple rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-green-600" id="statStatus">
+         ✓ OK
+        </div>
+        <div class="text-xs text-gray-500 mt-1">
+         Estado
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Calculate Button -->
+    <div class="mt-8 text-center"><button onclick="setTab(2)" class="btn-primary px-12 py-4 rounded-2xl text-white font-semibold text-lg shadow-xl"> Generar Evaluación Técnica → </button>
+    </div>
+   </div><!-- Stage 2: Technical Evaluation -->
+   <div id="stage2" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 hidden">
+    <div class="grid lg:grid-cols-3 gap-6"><!-- Tower Recommendation -->
+     <div class="lg:col-span-2 space-y-6">
+      <div class="card-apple rounded-3xl p-6 slide-up">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-apple-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg></span> Torre Recomendada</h3>
+       <div id="towerRecommendation" class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 mb-4">
+        <div class="flex items-center justify-between">
+         <div>
+          <div class="text-4xl font-bold text-apple-blue" id="recTowerType">
+           TA128
+          </div>
+          <div class="text-sm text-gray-600 mt-1">
+           Altura máx. orientativa: <span id="recMaxHeight">30m</span>
+          </div>
+         </div>
+         <div class="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+          <svg class="w-10 h-10 text-apple-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
+          </svg>
+         </div>
+        </div>
+       </div>
+       <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+        <p class="font-medium mb-1">⚠️ Nota importante:</p>
+        <p class="text-xs">Las alturas máximas indicadas son orientativas para condiciones estándar de viento moderado. La altura real depende de: velocidad básica de viento según zona, categoría de exposición del terreno, superficie de antenas instaladas, y cálculo estructural completo según CIRSOC 101/102.</p>
+       </div>
+      </div><!-- Technical Drawing -->
+      <div class="card-apple rounded-3xl p-6 slide-up" style="animation-delay: 0.1s;">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+         </svg></span> Plano Técnico</h3>
+       <div class="grid md:grid-cols-2 gap-4">
+        <div class="bg-gradient-to-b from-sky-50 to-gray-50 rounded-2xl p-4" style="height: 450px;">
+         <p class="text-xs text-gray-500 mb-2 text-center font-medium">Vista Lateral con Cotas</p>
+         <svg id="techSideView" viewbox="0 0 400 420" class="w-full h-full"></svg>
+        </div>
+        <div class="bg-gradient-to-br from-gray-50 to-slate-100 rounded-2xl p-4" style="height: 450px;">
+         <p class="text-xs text-gray-500 mb-2 text-center font-medium">Vista en Planta</p>
+         <svg id="techPlanView" viewbox="0 0 400 420" class="w-full h-full"></svg>
+        </div>
+       </div>
+      </div><!-- Cable Details Table -->
+      <div class="card-apple rounded-3xl p-6 slide-up" style="animation-delay: 0.2s;">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+         </svg></span> Detalle de Riendas</h3>
+       <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+         <thead>
+          <tr class="border-b border-gray-200">
+           <th class="text-left py-3 px-2 font-semibold text-gray-600">Nivel</th>
+           <th class="text-left py-3 px-2 font-semibold text-gray-600">Altura (m)</th>
+           <th class="text-left py-3 px-2 font-semibold text-gray-600">Longitud Cable (m)</th>
+           <th class="text-left py-3 px-2 font-semibold text-gray-600">Ángulo</th>
+           <th class="text-left py-3 px-2 font-semibold text-gray-600">Estado</th>
+          </tr>
+         </thead>
+         <tbody id="cableDetailsTable"></tbody>
+        </table>
+       </div>
+      </div><!-- Foundations Module -->
+      <div class="card-apple rounded-3xl p-6 slide-up" style="animation-delay: 0.3s;">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+         </svg></span> Fundaciones Preliminares</h3>
+       <div id="foundationsContainer" class="space-y-4"><!-- Base section -->
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+         <h4 class="font-semibold text-red-900 mb-3 text-sm">BASE CENTRAL</h4>
+         <div id="baseDetails" class="space-y-2 text-sm text-gray-700">
+          <p>Medidas del pozo relleno de hormigón:</p>
+          <p class="font-mono bg-white p-2 rounded border border-red-100"><span id="baseDims">-- × -- × -- m</span></p>
+          <p>Volumen total: <span id="baseVolume" class="font-semibold">-- m³</span></p>
+          <p>Tipo de hormigón: <span id="baseConcrete" class="font-mono font-semibold">--</span></p>
+         </div>
+        </div><!-- Anchors section -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+         <h4 class="font-semibold text-amber-900 mb-3 text-sm">ANCLAJES (<span id="anchorCountDisplay">--</span> unidades)</h4>
+         <div id="anchorDetails" class="space-y-2 text-sm text-gray-700">
+          <p>Medidas del pozo relleno de hormigón (cada uno):</p>
+          <p class="font-mono bg-white p-2 rounded border border-amber-100"><span id="anchorDims">-- × -- × -- m</span></p>
+          <p>Volumen por anclaje: <span id="anchorVolume" class="font-semibold">-- m³</span></p>
+          <p>Tipo de hormigón: <span id="anchorConcrete" class="font-mono font-semibold">--</span></p>
+         </div>
+        </div><!-- Total section -->
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+         <h4 class="font-semibold text-green-900 mb-3 text-sm">VOLUMEN TOTAL DE HORMIGÓN</h4>
+         <p class="text-2xl font-bold text-green-700" id="totalVolume">-- m³</p>
+        </div>
+       </div>
+      </div>
+     </div><!-- Materials Summary -->
+     <div class="space-y-6">
+      <div class="card-apple rounded-3xl p-6 slide-up" style="animation-delay: 0.15s;">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+         </svg></span> Materiales Estimados</h3>
+       <div class="space-y-3" id="materialsList"><!-- Dynamically populated -->
+       </div>
+      </div><!-- Cable Diameter Recommendation -->
+      <div class="card-apple rounded-3xl p-6 slide-up" style="animation-delay: 0.25s;">
+       <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+         <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+         </svg></span> Cable de Acero</h3>
+       <div class="bg-teal-50 rounded-xl p-4 text-center">
+        <div class="text-3xl font-bold text-teal-600" id="cableDiameter">
+         6 mm
+        </div>
+        <div class="text-xs text-gray-600 mt-1">
+         Diámetro sugerido (7x19)
+        </div>
+       </div>
+       <p class="text-xs text-gray-500 mt-3">Selección preliminar basada en altura y ángulo promedio. Verificar con cálculo de cargas.</p>
+      </div>
+     </div>
+    </div><!-- Back Button -->
+    <div class="mt-8 flex items-center justify-center gap-4"><button onclick="setTab(1)" class="px-8 py-3 rounded-2xl border-2 border-gray-300 text-gray-600 font-semibold hover:bg-gray-100 transition-all duration-300"> ← Volver a Configuración </button>
+    </div>
+   </div><!-- Footer -->
+   <footer class="border-t border-apple-border bg-white/50 glass mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+      <p>Herramienta de predimensionamiento • No reemplaza el cálculo estructural definitivo</p>
+      <p class="flex items-center gap-2"><span class="w-2 h-2 bg-green-500 rounded-full"></span> Normativa CIRSOC 101/102 Argentina</p>
+     </div>
+    </div>
+   </footer>
+  </div>
+  <script>
+    // Default configuration
+    const defaultConfig = {
+      app_title: 'Torre Arriostrada Designer',
+      app_subtitle: 'Predimensionamiento según CIRSOC 101/102',
+      primary_color: '#0071e3',
+      secondary_color: '#f5f5f7',
+      text_color: '#1d1d1f',
+      accent_color: '#34c759',
+      surface_color: '#ffffff'
+    };
+
+    let config = { ...defaultConfig };
+
+    // State
+    let state = {
+      towerHeight: 30,
+      anchorCount: 3,
+      anchors: [
+        { distance: 13, height: 0 },
+        { distance: 13, height: 0 },
+        { distance: 13, height: 0 }
+      ],
+      guyLevels: [10, 20, 29],
+      currentTab: 1,
+      windZone: 'medio'
+    };
+
+    // Tower types with accurate max heights per CIRSOC classification
+    const towerTypes = [
+      { type: 'TA90', classification: 'Ultraliviana', maxHeight: 15, minHeight: 6, typicalUse: 'Enlaces livianos, cámaras, pequeños mástiles' },
+      { type: 'TA128', classification: 'Liviana', maxHeight: 30, minHeight: 15, typicalUse: 'WISP, sectoriales chicas, radioenlaces' },
+      { type: 'C3512', classification: 'Liviana reforzada', maxHeight: 36, minHeight: 24, typicalUse: 'Múltiples antenas livianas o mayor carga de viento' },
+      { type: 'C45', classification: 'Media', maxHeight: 45, minHeight: 30, typicalUse: 'Telecom urbana con mayor superficie expuesta' },
+      { type: 'C60', classification: 'Media-Pesada', maxHeight: 60, minHeight: 40, typicalUse: 'Radiodifusión, múltiples paneles o zonas de viento elevado' }
+    ];
+
+    // TABLA ESTRUCTURAL OFICIAL - FUNDACIONES
+    // Dimensionada según CIRSOC 101/102 - valores verificados en campo
+    const tablaFundaciones = {
+      // Torre TA90 (Ultraliviana) - Máximo 15m
+      TA90: {
+        "6-15": {
+          3: {
+            base: { largo: 1.5, ancho: 1.5, profundidad: 1.0, volumen: 2.25, hormigon: "H25" },
+            anclaje: { largo: 1.0, ancho: 1.0, profundidad: 1.2, volumen: 1.2, hormigon: "H25" }
+          },
+          4: {
+            base: { largo: 1.5, ancho: 1.5, profundidad: 1.0, volumen: 2.25, hormigon: "H25" },
+            anclaje: { largo: 1.0, ancho: 1.0, profundidad: 1.2, volumen: 1.2, hormigon: "H25" }
+          }
+        }
+      },
+      // Torre TA128 (Liviana) - Máximo 30m
+      TA128: {
+        "9-15": {
+          3: {
+            base: { largo: 2.0, ancho: 2.0, profundidad: 1.3, volumen: 5.2, hormigon: "H30" },
+            anclaje: { largo: 1.2, ancho: 1.2, profundidad: 1.7, volumen: 2.45, hormigon: "H25" }
+          },
+          4: {
+            base: { largo: 2.0, ancho: 2.0, profundidad: 1.3, volumen: 5.2, hormigon: "H30" },
+            anclaje: { largo: 1.2, ancho: 1.2, profundidad: 1.7, volumen: 2.45, hormigon: "H25" }
+          }
+        },
+        "16-30": {
+          3: {
+            base: { largo: 2.0, ancho: 2.0, profundidad: 1.3, volumen: 5.2, hormigon: "H30" },
+            anclaje: { largo: 1.2, ancho: 1.2, profundidad: 1.7, volumen: 2.45, hormigon: "H25" }
+          },
+          4: {
+            base: { largo: 2.0, ancho: 2.0, profundidad: 1.3, volumen: 5.2, hormigon: "H30" },
+            anclaje: { largo: 1.2, ancho: 1.2, profundidad: 1.7, volumen: 2.45, hormigon: "H25" }
+          }
+        }
+      },
+      // Torre C3512 (Liviana reforzada) - Máximo 36m
+      C3512: {
+        "16-30": {
+          3: {
+            base: { largo: 2.0, ancho: 2.0, profundidad: 1.3, volumen: 5.2, hormigon: "H30" },
+            anclaje: { largo: 1.2, ancho: 1.2, profundidad: 1.7, volumen: 2.45, hormigon: "H25" }
+          },
+          4: {
+            base: { largo: 2.0, ancho: 2.0, profundidad: 1.3, volumen: 5.2, hormigon: "H30" },
+            anclaje: { largo: 1.2, ancho: 1.2, profundidad: 1.7, volumen: 2.45, hormigon: "H25" }
+          }
+        },
+        "31-36": {
+          3: {
+            base: { largo: 2.5, ancho: 2.5, profundidad: 1.5, volumen: 9.375, hormigon: "H30" },
+            anclaje: { largo: 1.4, ancho: 1.4, profundidad: 1.9, volumen: 3.72, hormigon: "H25" }
+          },
+          4: {
+            base: { largo: 2.5, ancho: 2.5, profundidad: 1.5, volumen: 9.375, hormigon: "H30" },
+            anclaje: { largo: 1.4, ancho: 1.4, profundidad: 1.9, volumen: 3.72, hormigon: "H25" }
+          }
+        }
+      },
+      // Torre C45 (Media) - Máximo 45m
+      C45: {
+        "31-45": {
+          3: {
+            base: { largo: 2.5, ancho: 2.5, profundidad: 1.5, volumen: 9.375, hormigon: "H30" },
+            anclaje: { largo: 1.4, ancho: 1.4, profundidad: 1.9, volumen: 3.72, hormigon: "H25" }
+          },
+          4: {
+            base: { largo: 2.5, ancho: 2.5, profundidad: 1.5, volumen: 9.375, hormigon: "H30" },
+            anclaje: { largo: 1.4, ancho: 1.4, profundidad: 1.9, volumen: 3.72, hormigon: "H25" }
+          }
+        }
+      },
+      // Torre C60 (Media-Pesada) - Máximo 60m
+      C60: {
+        "46-60": {
+          3: {
+            base: { largo: 3.0, ancho: 3.0, profundidad: 1.5, volumen: 13.5, hormigon: "H30" },
+            anclaje: { largo: 1.5, ancho: 1.5, profundidad: 2.0, volumen: 4.5, hormigon: "H25" }
+          },
+          4: {
+            base: { largo: 3.0, ancho: 3.0, profundidad: 1.5, volumen: 13.5, hormigon: "H30" },
+            anclaje: { largo: 1.5, ancho: 1.5, profundidad: 2.0, volumen: 4.5, hormigon: "H25" }
+          }
+        }
+      }
+    };
+
+    // Initialize
+    function init() {
+      // Disable browser scroll restoration
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+      
+      updateAnchorInputs();
+      updateGuyLevelInputs();
+      updateVisualization();
+      
+      // Initialize Element SDK
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange: async (newConfig) => {
+            config = { ...config, ...newConfig };
+            applyConfig();
+          },
+          mapToCapabilities: (cfg) => ({
+            recolorables: [
+              { get: () => cfg.secondary_color || defaultConfig.secondary_color, set: (v) => { cfg.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); }},
+              { get: () => cfg.surface_color || defaultConfig.surface_color, set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }},
+              { get: () => cfg.text_color || defaultConfig.text_color, set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }},
+              { get: () => cfg.primary_color || defaultConfig.primary_color, set: (v) => { cfg.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); }},
+              { get: () => cfg.accent_color || defaultConfig.accent_color, set: (v) => { cfg.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); }}
+            ],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+          }),
+          mapToEditPanelValues: (cfg) => new Map([
+            ['app_title', cfg.app_title || defaultConfig.app_title],
+            ['subtitle', cfg.app_subtitle || defaultConfig.app_subtitle]
+          ])
+        });
+      }
+    }
+
+    function applyConfig() {
+      document.getElementById('app-title').textContent = config.app_title || defaultConfig.app_title;
+      document.getElementById('app-subtitle').textContent = config.app_subtitle || defaultConfig.app_subtitle;
+      document.body.style.backgroundColor = config.secondary_color || defaultConfig.secondary_color;
+      document.querySelectorAll('.card-apple').forEach(el => {
+        el.style.backgroundColor = config.surface_color || defaultConfig.surface_color;
+      });
+      document.body.style.color = config.text_color || defaultConfig.text_color;
+    }
+
+    function setTab(tab) {
+      state.currentTab = tab;
+      const tab1Btn = document.getElementById('tab1');
+      const tab2Btn = document.getElementById('tab2');
+      const stage1 = document.getElementById('stage1');
+      const stage2 = document.getElementById('stage2');
+
+      if (tab === 1) {
+        tab1Btn.classList.add('tab-active');
+        tab1Btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+        tab2Btn.classList.remove('tab-active');
+        tab2Btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+        stage1.classList.remove('hidden');
+        stage2.classList.add('hidden');
+      } else {
+        tab2Btn.classList.add('tab-active');
+        tab2Btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
+        tab1Btn.classList.remove('tab-active');
+        tab1Btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+        stage1.classList.add('hidden');
+        stage2.classList.remove('hidden');
+        updateTechnicalView();
+        // Scroll to top when entering technical evaluation
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      }
+    }
+
+    function updateTowerHeight(value) {
+      value = Math.max(9, Math.min(60, parseInt(value) || 30));
+      value = Math.round(value / 3) * 3;
+      state.towerHeight = value;
+      document.getElementById('towerHeight').value = value;
+      document.getElementById('towerHeightInput').value = value;
+      
+      // Auto-adjust guy levels
+      const levels = Math.max(1, Math.min(6, Math.ceil(value / 10)));
+      state.guyLevels = [];
+      for (let i = 0; i < levels; i++) {
+        const h = Math.round(((i + 1) / (levels + 1)) * value + value * 0.2);
+        state.guyLevels.push(Math.min(h, value - 1));
+      }
+      state.guyLevels[state.guyLevels.length - 1] = value - 1;
+      
+      updateGuyLevelInputs();
+      updateAnchorInputs();
+      updateVisualization();
+    }
+
+    function setAnchors(count) {
+      state.anchorCount = count;
+      const btn3 = document.getElementById('anchor3');
+      const btn4 = document.getElementById('anchor4');
+      
+      if (count === 3) {
+        btn3.classList.add('border-apple-blue', 'bg-blue-50', 'text-apple-blue');
+        btn3.classList.remove('border-gray-200', 'bg-white', 'text-gray-600');
+        btn4.classList.remove('border-apple-blue', 'bg-blue-50', 'text-apple-blue');
+        btn4.classList.add('border-gray-200', 'bg-white', 'text-gray-600');
+        state.anchors = state.anchors.slice(0, 3);
+        if (state.anchors.length < 3) {
+          while (state.anchors.length < 3) {
+            state.anchors.push({ distance: 13, height: 0 });
+          }
+        }
+      } else {
+        btn4.classList.add('border-apple-blue', 'bg-blue-50', 'text-apple-blue');
+        btn4.classList.remove('border-gray-200', 'bg-white', 'text-gray-600');
+        btn3.classList.remove('border-apple-blue', 'bg-blue-50', 'text-apple-blue');
+        btn3.classList.add('border-gray-200', 'bg-white', 'text-gray-600');
+        if (state.anchors.length < 4) {
+          state.anchors.push({ distance: 13, height: 0 });
+        }
+      }
+      
+      updateAnchorInputs();
+      updateVisualization();
+    }
+
+    function updateAnchorInputs() {
+      const container = document.getElementById('anchorInputs');
+      const labels = state.anchorCount === 3 ? ['A (0°)', 'B (120°)', 'C (240°)'] : ['A (0°)', 'B (90°)', 'C (180°)', 'D (270°)'];
+      
+      container.innerHTML = state.anchors.slice(0, state.anchorCount).map((anchor, i) => `
+        <div class="bg-gray-50 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium text-gray-700">Anclaje ${labels[i]}</span>
+            <span class="text-xs px-2 py-1 rounded-full ${getAngleStatus(anchor, i).class}">${getAngleStatus(anchor, i).text}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-500 block mb-1">Distancia (m)</label>
+              <input type="number" value="${anchor.distance}" min="3" max="50" step="0.5"
+                class="input-apple w-full px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                onchange="updateAnchor(${i}, 'distance', this.value)">
+            </div>
+            <div>
+              <label class="text-xs text-gray-500 block mb-1">Altura anclaje (m)</label>
+              <input type="number" value="${anchor.height}" min="-10" max="20" step="0.5"
+                class="input-apple w-full px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                onchange="updateAnchor(${i}, 'height', this.value)">
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      checkWarnings();
+    }
+
+    function updateAnchor(index, prop, value) {
+      state.anchors[index][prop] = parseFloat(value) || 0;
+      updateAnchorInputs();
+      updateVisualization();
+    }
+
+    function getAngleStatus(anchor, index) {
+      const avgHeight = state.guyLevels.reduce((a, b) => a + b, 0) / state.guyLevels.length;
+      const effectiveHeight = avgHeight - anchor.height;
+      const angle = Math.atan2(effectiveHeight, anchor.distance) * (180 / Math.PI);
+      
+      if (angle >= 45 && angle <= 60) {
+        return { class: 'bg-green-100 text-green-700', text: `${angle.toFixed(0)}° ✓` };
+      } else if (angle >= 40 && angle <= 65) {
+        return { class: 'bg-yellow-100 text-yellow-700', text: `${angle.toFixed(0)}° ~` };
+      } else {
+        return { class: 'bg-red-100 text-red-700', text: `${angle.toFixed(0)}° ✗` };
+      }
+    }
+
+    function checkWarnings() {
+      const warning = document.getElementById('anchorWarning');
+      const avgDistance = state.anchors.slice(0, state.anchorCount).reduce((a, b) => a + b.distance, 0) / state.anchorCount;
+      const ratio = (avgDistance / state.towerHeight) * 100;
+      
+      if (ratio < 40 && state.anchorCount === 3) {
+        warning.classList.remove('hidden');
+      } else {
+        warning.classList.add('hidden');
+      }
+
+      // Update quick stats
+      document.getElementById('statRatio').textContent = `${ratio.toFixed(0)}%`;
+      if (ratio >= 40) {
+        document.getElementById('statStatus').textContent = '✓ OK';
+        document.getElementById('statStatus').className = 'text-2xl font-bold text-green-600';
+      } else {
+        document.getElementById('statStatus').textContent = '⚠ Revisar';
+        document.getElementById('statStatus').className = 'text-2xl font-bold text-amber-500';
+      }
+    }
+
+    function changeGuyLevels(delta) {
+      const newCount = Math.max(1, Math.min(6, state.guyLevels.length + delta));
+      if (newCount !== state.guyLevels.length) {
+        if (delta > 0) {
+          const lastHeight = state.guyLevels[state.guyLevels.length - 1] || state.towerHeight * 0.5;
+          const newHeight = Math.min(lastHeight + 10, state.towerHeight - 1);
+          state.guyLevels.push(newHeight);
+        } else {
+          state.guyLevels.pop();
+        }
+        updateGuyLevelInputs();
+        updateVisualization();
+      }
+    }
+
+    function updateGuyLevelInputs() {
+      document.getElementById('guyLevelCount').textContent = state.guyLevels.length;
+      const container = document.getElementById('guyLevelInputs');
+      
+      container.innerHTML = state.guyLevels.map((height, i) => `
+        <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+          <span class="text-sm font-medium text-gray-600 w-20">Nivel ${i + 1}</span>
+          <input type="range" min="3" max="${state.towerHeight - 1}" value="${height}" step="1"
+            class="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-500"
+            oninput="updateGuyLevel(${i}, this.value)">
+          <div class="flex items-center gap-1 bg-white rounded-lg px-3 py-1 border border-gray-200">
+            <input type="number" value="${height}" min="3" max="${state.towerHeight - 1}"
+              class="w-12 bg-transparent text-center text-sm font-medium outline-none"
+              onchange="updateGuyLevel(${i}, this.value)">
+            <span class="text-xs text-gray-400">m</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateGuyLevel(index, value) {
+      state.guyLevels[index] = Math.max(3, Math.min(state.towerHeight - 1, parseInt(value) || 10));
+      state.guyLevels.sort((a, b) => a - b);
+      updateGuyLevelInputs();
+      updateVisualization();
+    }
+
+    function setWindZone(zone) {
+      state.windZone = zone;
+      const windBtns = {
+        bajo: document.getElementById('windLow'),
+        medio: document.getElementById('windMedium'),
+        alto: document.getElementById('windHigh'),
+        extremo: document.getElementById('windExtreme')
+      };
+
+      // Update button styles
+      Object.keys(windBtns).forEach(z => {
+        if (z === zone) {
+          windBtns[z].classList.add('border-cyan-500', 'bg-cyan-50', 'text-cyan-600');
+          windBtns[z].classList.remove('border-cyan-200', 'bg-white', 'text-gray-600');
+        } else {
+          windBtns[z].classList.remove('border-cyan-500', 'bg-cyan-50', 'text-cyan-600');
+          windBtns[z].classList.add('border-cyan-200', 'bg-white', 'text-gray-600');
+        }
+      });
+
+      updateTechnicalView();
+    }
+
+    function updateVisualization() {
+      drawSideView();
+      drawPlanView();
+      checkWarnings();
+    }
+
+    function drawSideView() {
+      const svg = document.getElementById('sideViewSvg');
+      const width = 500, height = 400;
+      const margin = { top: 30, right: 80, bottom: 50, left: 80 };
+      const drawWidth = width - margin.left - margin.right;
+      const drawHeight = height - margin.top - margin.bottom;
+
+      // Calculate scale
+      const maxDistance = Math.max(...state.anchors.slice(0, state.anchorCount).map(a => a.distance));
+      const minAnchorHeight = Math.min(...state.anchors.slice(0, state.anchorCount).map(a => a.height));
+      const totalHeight = state.towerHeight - minAnchorHeight;
+      const totalWidth = maxDistance * 2;
+      
+      const scale = Math.min(drawWidth / totalWidth, drawHeight / totalHeight) * 0.85;
+      const centerX = width / 2;
+      const baseY = height - margin.bottom - (minAnchorHeight < 0 ? Math.abs(minAnchorHeight) * scale : 0);
+
+      // Generate SVG content
+      let svgContent = `
+        <!-- Grid -->
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" opacity="0.5"/>
+        
+        <!-- Ground line -->
+        <line x1="${margin.left - 20}" y1="${baseY}" x2="${width - margin.right + 20}" y2="${baseY}" 
+          stroke="#86efac" stroke-width="3" stroke-linecap="round"/>
+        <text x="${margin.left - 10}" y="${baseY + 15}" font-size="10" fill="#22c55e">Nivel 0</text>
+      `;
+
+      // Draw guy wires (both sides for side view)
+      const anchorLeft = state.anchors[0];
+      const anchorRight = state.anchors[state.anchorCount === 3 ? 1 : 2];
+
+      state.guyLevels.forEach((levelHeight, i) => {
+        // Left guy wire
+        const leftX = centerX - anchorLeft.distance * scale;
+        const leftY = baseY - anchorLeft.height * scale;
+        const topY = baseY - levelHeight * scale;
+        
+        svgContent += `
+          <line x1="${leftX}" y1="${leftY}" x2="${centerX}" y2="${topY}" 
+            stroke="#f97316" stroke-width="2" stroke-dasharray="6,3"/>
+        `;
+
+        // Right guy wire
+        const rightX = centerX + anchorRight.distance * scale;
+        const rightY = baseY - anchorRight.height * scale;
+        
+        svgContent += `
+          <line x1="${rightX}" y1="${rightY}" x2="${centerX}" y2="${topY}" 
+            stroke="#f97316" stroke-width="2" stroke-dasharray="6,3"/>
+        `;
+
+        // Guy level indicator on tower
+        svgContent += `
+          <circle cx="${centerX}" cy="${topY}" r="4" fill="#f97316"/>
+          <text x="${centerX + 15}" y="${topY + 4}" font-size="10" fill="#ea580c" font-weight="500">${levelHeight}m</text>
+        `;
+      });
+
+      // Draw tower structure
+      const towerWidth = 15;
+      const towerTop = baseY - state.towerHeight * scale;
+      
+      // Tower body
+      svgContent += `
+        <rect x="${centerX - towerWidth/2}" y="${towerTop}" width="${towerWidth}" height="${state.towerHeight * scale}" 
+          fill="url(#towerGradient)" stroke="#3b82f6" stroke-width="2" rx="2"/>
+        <defs>
+          <linearGradient id="towerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#60a5fa;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+      `;
+
+      // Draw 3m segments
+      const segments = Math.ceil(state.towerHeight / 3);
+      for (let i = 1; i < segments; i++) {
+        const segY = baseY - (i * 3) * scale;
+        if (segY > towerTop) {
+          svgContent += `
+            <line x1="${centerX - towerWidth/2 - 3}" y1="${segY}" x2="${centerX + towerWidth/2 + 3}" y2="${segY}" 
+              stroke="#2563eb" stroke-width="1" opacity="0.5"/>
+          `;
+        }
+      }
+
+      // Tower top antenna
+      svgContent += `
+        <line x1="${centerX}" y1="${towerTop}" x2="${centerX}" y2="${towerTop - 15}" stroke="#1e40af" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="${centerX}" cy="${towerTop - 18}" r="4" fill="#1e40af"/>
+      `;
+
+      // Anchor points
+      state.anchors.slice(0, state.anchorCount).forEach((anchor, i) => {
+        if (i === 0 || (state.anchorCount === 3 && i === 1) || (state.anchorCount === 4 && i === 2)) {
+          const x = i === 0 ? centerX - anchor.distance * scale : centerX + anchor.distance * scale;
+          const y = baseY - anchor.height * scale;
+          
+          svgContent += `
+            <circle cx="${x}" cy="${y}" r="6" fill="#dc2626" stroke="white" stroke-width="2"/>
+            <text x="${x}" y="${y + 20}" font-size="10" fill="#dc2626" text-anchor="middle" font-weight="500">
+              ${anchor.distance}m
+            </text>
+          `;
+
+          // Anchor height indicator if not at ground
+          if (anchor.height !== 0) {
+            svgContent += `
+              <line x1="${x}" y1="${baseY}" x2="${x}" y2="${y}" stroke="#dc2626" stroke-width="1" stroke-dasharray="3,3"/>
+              <text x="${x + 8}" y="${(baseY + y) / 2}" font-size="9" fill="#dc2626">${anchor.height > 0 ? '+' : ''}${anchor.height}m</text>
+            `;
+          }
+        }
+      });
+
+      // Height dimension
+      svgContent += `
+        <line x1="${margin.left - 30}" y1="${baseY}" x2="${margin.left - 30}" y2="${towerTop}" 
+          stroke="#6b7280" stroke-width="1"/>
+        <line x1="${margin.left - 35}" y1="${baseY}" x2="${margin.left - 25}" y2="${baseY}" stroke="#6b7280" stroke-width="1"/>
+        <line x1="${margin.left - 35}" y1="${towerTop}" x2="${margin.left - 25}" y2="${towerTop}" stroke="#6b7280" stroke-width="1"/>
+        <text x="${margin.left - 40}" y="${(baseY + towerTop) / 2}" font-size="12" fill="#374151" 
+          text-anchor="middle" transform="rotate(-90, ${margin.left - 40}, ${(baseY + towerTop) / 2})" font-weight="600">
+          ${state.towerHeight}m
+        </text>
+      `;
+
+      svg.innerHTML = svgContent;
+    }
+
+    function drawPlanView() {
+      const svg = document.getElementById('planViewSvg');
+      const width = 400, height = 300;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      
+      const maxDistance = Math.max(...state.anchors.slice(0, state.anchorCount).map(a => a.distance));
+      const scale = Math.min(width, height) * 0.35 / maxDistance;
+
+      const angleStep = 360 / state.anchorCount;
+      
+      let svgContent = `
+        <!-- Background circles -->
+        <circle cx="${centerX}" cy="${centerY}" r="${maxDistance * scale}" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="5,5"/>
+        <circle cx="${centerX}" cy="${centerY}" r="${maxDistance * scale * 0.5}" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3"/>
+      `;
+
+      // Draw guy wires and anchor points
+      state.anchors.slice(0, state.anchorCount).forEach((anchor, i) => {
+        const angle = (i * angleStep - 90) * Math.PI / 180;
+        const x = centerX + Math.cos(angle) * anchor.distance * scale;
+        const y = centerY + Math.sin(angle) * anchor.distance * scale;
+
+        // Guy wire line
+        svgContent += `
+          <line x1="${centerX}" y1="${centerY}" x2="${x}" y2="${y}" 
+            stroke="#f97316" stroke-width="2" stroke-dasharray="6,3"/>
+        `;
+
+        // Anchor point
+        svgContent += `
+          <circle cx="${x}" cy="${y}" r="8" fill="#dc2626" stroke="white" stroke-width="2"/>
+          <text x="${x}" y="${y + 22}" font-size="10" fill="#dc2626" text-anchor="middle" font-weight="500">
+            ${String.fromCharCode(65 + i)}
+          </text>
+        `;
+
+        // Angle label
+        const labelAngle = i * angleStep;
+        svgContent += `
+          <text x="${x + Math.cos(angle) * 15}" y="${y + Math.sin(angle) * 15}" 
+            font-size="9" fill="#6b7280" text-anchor="middle">${labelAngle}°</text>
+        `;
+      });
+
+      // Tower center
+      svgContent += `
+        <circle cx="${centerX}" cy="${centerY}" r="12" fill="#3b82f6" stroke="white" stroke-width="3"/>
+        <circle cx="${centerX}" cy="${centerY}" r="5" fill="white"/>
+      `;
+
+      // Legend
+      svgContent += `
+        <text x="${width - 20}" y="20" font-size="10" fill="#6b7280" text-anchor="end">${state.anchorCount} anclajes</text>
+        <text x="${width - 20}" y="35" font-size="10" fill="#6b7280" text-anchor="end">${angleStep}° entre ejes</text>
+      `;
+
+      svg.innerHTML = svgContent;
+    }
+
+    function updateTechnicalView() {
+      updateTowerRecommendation();
+      drawTechSideView();
+      drawTechPlanView();
+      updateCableDetails();
+      updateMaterialsList();
+      updateFoundations();
+    }
+
+    function updateTowerRecommendation() {
+      const height = state.towerHeight;
+      let recommended = null;
+      let warning = '';
+      
+      // Rule 1: Find tower that can accommodate this height
+      for (const tower of towerTypes) {
+        if (height <= tower.maxHeight) {
+          recommended = tower;
+          
+          // Rule 3: If height is at upper limit, issue warning
+          if (height >= tower.maxHeight * 0.85) {
+            warning = ` (límite superior - depende de viento y superficie)`;
+          }
+          break;
+        }
+      }
+      
+      // Rule 2: If no tower found, use the tallest (should not happen with max 60m)
+      if (!recommended) {
+        recommended = towerTypes[towerTypes.length - 1];
+        warning = ' (altura máxima solicitada supera capacidad)';
+      }
+      
+      document.getElementById('recTowerType').textContent = recommended.type + warning;
+      document.getElementById('recMaxHeight').textContent = `${recommended.maxHeight}m`;
+      
+      // Update classification info
+      const infoBox = document.querySelector('.bg-amber-50.border.border-amber-200');
+      if (infoBox) {
+        const useText = infoBox.querySelector('p:nth-of-type(2)');
+        if (useText) {
+          useText.innerHTML = `<strong>Clasificación:</strong> ${recommended.classification}<br>
+          <strong>Uso típico:</strong> ${recommended.typicalUse}<br><br>
+          <strong>⚠️ Nota importante:</strong> Las alturas máximas indicadas son orientativas para condiciones estándar de viento moderado. La altura real depende de: velocidad básica de viento según zona, categoría de exposición del terreno, superficie de antenas instaladas, y cálculo estructural completo según CIRSOC 101/102.`;
+        }
+      }
+    }
+
+    function drawTechSideView() {
+      const svg = document.getElementById('techSideView');
+      const width = 400, height = 420;
+      const margin = { top: 20, right: 60, bottom: 40, left: 60 };
+      const drawHeight = height - margin.top - margin.bottom;
+      
+      const scale = (drawHeight * 0.85) / state.towerHeight;
+      const centerX = width / 2;
+      const baseY = height - margin.bottom;
+
+      let svgContent = `
+        <!-- Grid -->
+        <defs>
+          <pattern id="techGrid" width="15" height="15" patternUnits="userSpaceOnUse">
+            <path d="M 15 0 L 0 0 0 15" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#techGrid)" opacity="0.3"/>
+      `;
+
+      // Draw 3m segments
+      const segments = Math.ceil(state.towerHeight / 3);
+      const towerWidth = 20;
+      const towerTop = baseY - state.towerHeight * scale;
+
+      // Tower structure with segments
+      for (let i = 0; i < segments; i++) {
+        const segBottom = baseY - (i * 3) * scale;
+        const segTop = baseY - Math.min((i + 1) * 3, state.towerHeight) * scale;
+        const segHeight = segBottom - segTop;
+        
+        svgContent += `
+          <rect x="${centerX - towerWidth/2}" y="${segTop}" width="${towerWidth}" height="${segHeight}" 
+            fill="${i % 2 === 0 ? '#3b82f6' : '#60a5fa'}" stroke="#1d4ed8" stroke-width="1"/>
+          <text x="${centerX + towerWidth/2 + 8}" y="${(segTop + segBottom) / 2 + 3}" 
+            font-size="8" fill="#6b7280">${i * 3}m</text>
+        `;
+
+        // Diagonal bracing
+        if (segHeight > 5) {
+          svgContent += `
+            <line x1="${centerX - towerWidth/2 + 2}" y1="${segBottom - 2}" x2="${centerX + towerWidth/2 - 2}" y2="${segTop + 2}" 
+              stroke="#1d4ed8" stroke-width="0.5" opacity="0.5"/>
+            <line x1="${centerX + towerWidth/2 - 2}" y1="${segBottom - 2}" x2="${centerX - towerWidth/2 + 2}" y2="${segTop + 2}" 
+              stroke="#1d4ed8" stroke-width="0.5" opacity="0.5"/>
+          `;
+        }
+      }
+
+      // Guy wires with labels
+      const maxDistance = Math.max(...state.anchors.slice(0, state.anchorCount).map(a => a.distance));
+      const hScale = (width / 2 - margin.left - 30) / maxDistance;
+
+      state.guyLevels.forEach((levelHeight, i) => {
+        const levelY = baseY - levelHeight * scale;
+        const anchorX = centerX - state.anchors[0].distance * hScale;
+        const anchorY = baseY - state.anchors[0].height * scale;
+        
+        // Calculate cable length
+        const dx = state.anchors[0].distance;
+        const dy = levelHeight - state.anchors[0].height;
+        const cableLength = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+        svgContent += `
+          <line x1="${anchorX}" y1="${anchorY}" x2="${centerX}" y2="${levelY}" 
+            stroke="#f97316" stroke-width="2"/>
+          <circle cx="${centerX}" cy="${levelY}" r="4" fill="#f97316"/>
+          
+          <!-- Cable info -->
+          <text x="${(anchorX + centerX) / 2 - 5}" y="${(anchorY + levelY) / 2 - 5}" 
+            font-size="8" fill="#ea580c" font-weight="500">${cableLength.toFixed(1)}m</text>
+          <text x="${(anchorX + centerX) / 2 - 5}" y="${(anchorY + levelY) / 2 + 7}" 
+            font-size="7" fill="#9a3412">${angle.toFixed(0)}°</text>
+        `;
+
+        // Level marker
+        svgContent += `
+          <line x1="${margin.left - 20}" y1="${levelY}" x2="${centerX - towerWidth/2 - 5}" y2="${levelY}" 
+            stroke="#f97316" stroke-width="0.5" stroke-dasharray="3,3"/>
+          <text x="${margin.left - 25}" y="${levelY + 3}" font-size="9" fill="#ea580c" text-anchor="end" font-weight="500">
+            N${i + 1}
+          </text>
+        `;
+      });
+
+      // Ground and anchor
+      svgContent += `
+        <line x1="${margin.left - 10}" y1="${baseY}" x2="${width - margin.right + 10}" y2="${baseY}" 
+          stroke="#22c55e" stroke-width="2"/>
+        <circle cx="${centerX - state.anchors[0].distance * hScale}" cy="${baseY - state.anchors[0].height * scale}" 
+          r="5" fill="#dc2626"/>
+      `;
+
+      // Height dimension
+      svgContent += `
+        <line x1="${width - margin.right + 15}" y1="${baseY}" x2="${width - margin.right + 15}" y2="${towerTop}" 
+          stroke="#374151" stroke-width="1"/>
+        <text x="${width - margin.right + 25}" y="${(baseY + towerTop) / 2}" 
+          font-size="10" fill="#374151" font-weight="600"
+          transform="rotate(90, ${width - margin.right + 25}, ${(baseY + towerTop) / 2})">
+          ${state.towerHeight}m
+        </text>
+      `;
+
+      svg.innerHTML = svgContent;
+    }
+
+    function drawTechPlanView() {
+      const svg = document.getElementById('techPlanView');
+      const width = 400, height = 420;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      
+      const maxDistance = Math.max(...state.anchors.slice(0, state.anchorCount).map(a => a.distance));
+      const scale = Math.min(width, height) * 0.3 / maxDistance;
+      const angleStep = 360 / state.anchorCount;
+
+      let svgContent = `
+        <!-- Concentric circles -->
+        <circle cx="${centerX}" cy="${centerY}" r="${maxDistance * scale}" fill="none" stroke="#d1d5db" stroke-width="1"/>
+        <circle cx="${centerX}" cy="${centerY}" r="${maxDistance * scale * 0.66}" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
+        <circle cx="${centerX}" cy="${centerY}" r="${maxDistance * scale * 0.33}" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,4"/>
+        
+        <!-- Compass -->
+        <text x="${centerX}" y="25" font-size="10" fill="#6b7280" text-anchor="middle">N</text>
+        <text x="${width - 20}" y="${centerY + 3}" font-size="10" fill="#6b7280" text-anchor="end">E</text>
+        <text x="${centerX}" y="${height - 15}" font-size="10" fill="#6b7280" text-anchor="middle">S</text>
+        <text x="20" y="${centerY + 3}" font-size="10" fill="#6b7280">O</text>
+      `;
+
+      // Draw anchors with detailed info
+      state.anchors.slice(0, state.anchorCount).forEach((anchor, i) => {
+        const angle = (i * angleStep - 90) * Math.PI / 180;
+        const x = centerX + Math.cos(angle) * anchor.distance * scale;
+        const y = centerY + Math.sin(angle) * anchor.distance * scale;
+
+        // Guy wire
+        svgContent += `
+          <line x1="${centerX}" y1="${centerY}" x2="${x}" y2="${y}" 
+            stroke="#f97316" stroke-width="2"/>
+        `;
+
+        // Anchor point with info box
+        svgContent += `
+          <circle cx="${x}" cy="${y}" r="10" fill="#dc2626" stroke="white" stroke-width="2"/>
+          <text x="${x}" y="${y + 4}" font-size="10" fill="white" text-anchor="middle" font-weight="bold">
+            ${String.fromCharCode(65 + i)}
+          </text>
+        `;
+
+        // Distance label
+        const midX = (centerX + x) / 2;
+        const midY = (centerY + y) / 2;
+        svgContent += `
+          <rect x="${midX - 18}" y="${midY - 8}" width="36" height="16" rx="4" fill="white" stroke="#f97316" stroke-width="1"/>
+          <text x="${midX}" y="${midY + 4}" font-size="9" fill="#ea580c" text-anchor="middle" font-weight="500">
+            ${anchor.distance}m
+          </text>
+        `;
+
+        // Angle label
+        const labelDist = anchor.distance * scale + 25;
+        const labelX = centerX + Math.cos(angle) * labelDist;
+        const labelY = centerY + Math.sin(angle) * labelDist;
+        svgContent += `
+          <text x="${labelX}" y="${labelY + 3}" font-size="9" fill="#6b7280" text-anchor="middle">
+            ${i * angleStep}°
+          </text>
+        `;
+      });
+
+      // Tower center
+      svgContent += `
+        <circle cx="${centerX}" cy="${centerY}" r="15" fill="#3b82f6" stroke="white" stroke-width="3"/>
+        <text x="${centerX}" y="${centerY + 4}" font-size="10" fill="white" text-anchor="middle" font-weight="bold">T</text>
+      `;
+
+      // Legend
+      svgContent += `
+        <rect x="10" y="${height - 80}" width="100" height="65" rx="8" fill="white" stroke="#e5e7eb"/>
+        <text x="20" y="${height - 62}" font-size="9" fill="#374151" font-weight="600">Configuración</text>
+        <text x="20" y="${height - 48}" font-size="8" fill="#6b7280">${state.anchorCount} puntos de anclaje</text>
+        <text x="20" y="${height - 35}" font-size="8" fill="#6b7280">${state.guyLevels.length} niveles de rienda</text>
+        <text x="20" y="${height - 22}" font-size="8" fill="#6b7280">${angleStep}° entre anclajes</text>
+      `;
+
+      svg.innerHTML = svgContent;
+    }
+
+    function updateCableDetails() {
+      const tbody = document.getElementById('cableDetailsTable');
+      
+      tbody.innerHTML = state.guyLevels.map((levelHeight, i) => {
+        // Calculate average cable length for this level
+        let totalLength = 0;
+        state.anchors.slice(0, state.anchorCount).forEach(anchor => {
+          const dx = anchor.distance;
+          const dy = levelHeight - anchor.height;
+          totalLength += Math.sqrt(dx * dx + dy * dy);
+        });
+        const avgLength = totalLength / state.anchorCount;
+        
+        // Calculate average angle
+        const avgAnchor = state.anchors.slice(0, state.anchorCount).reduce((acc, a) => ({
+          distance: acc.distance + a.distance / state.anchorCount,
+          height: acc.height + a.height / state.anchorCount
+        }), { distance: 0, height: 0 });
+        const angle = Math.atan2(levelHeight - avgAnchor.height, avgAnchor.distance) * (180 / Math.PI);
+        
+        const isGood = angle >= 45 && angle <= 60;
+        const isOk = angle >= 40 && angle <= 65;
+
+        return `
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+            <td class="py-3 px-2">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-600 text-xs font-bold">
+                ${i + 1}
+              </span>
+            </td>
+            <td class="py-3 px-2 font-medium">${levelHeight} m</td>
+            <td class="py-3 px-2">${(avgLength + 0.9).toFixed(1)} m <span class="text-xs text-gray-400">(+0.9 remate)</span></td>
+            <td class="py-3 px-2">${angle.toFixed(1)}°</td>
+            <td class="py-3 px-2">
+              ${isGood ? '<span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Óptimo</span>' :
+                isOk ? '<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Aceptable</span>' :
+                '<span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Revisar</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateMaterialsList() {
+      const container = document.getElementById('materialsList');
+      
+      // Calculate totals
+      let totalCableLength = 0;
+      state.guyLevels.forEach(levelHeight => {
+        state.anchors.slice(0, state.anchorCount).forEach(anchor => {
+          const dx = anchor.distance;
+          const dy = levelHeight - anchor.height;
+          totalCableLength += Math.sqrt(dx * dx + dy * dy) + 0.9; // +0.9 for terminations
+        });
+      });
+
+      const totalRiendas = state.guyLevels.length * state.anchorCount;
+      const largoTramo = 3; // metros
+      const totalTramos = Math.ceil(state.towerHeight / largoTramo);
+
+      // REGLA 1: BULONES, TUERCAS Y ARANDELAS POR UNIONES DE TRAMOS
+      // uniones = totalTramos - 1
+      // cantidad = uniones × 3
+      const uniones = totalTramos - 1;
+      const bulones = uniones * 3;
+      const tuercas = uniones * 3;
+      const arandelas = uniones * 3;
+
+      // CABLE DIAMETER CALCULATION ACCORDING TO CIRSOC 101/102
+      const cableDiamData = calculateCableDiameter(state.towerHeight, state.windZone, state.anchorCount);
+      const cableDiam = cableDiamData.diameter;
+      
+      document.getElementById('cableDiameter').textContent = `${cableDiam} mm`;
+      
+      // REGLA 2: PRENSACABLES SEGÚN NORMA IRAM 722
+      let prensacablesPorRemate = 0;
+      
+      if (cableDiam >= 5 && cableDiam <= 9) {
+        prensacablesPorRemate = 3; // 3 × 2 remates = 6 por rienda
+      } else if (cableDiam >= 10 && cableDiam <= 16) {
+        prensacablesPorRemate = 4; // 4 × 2 remates = 8 por rienda
+      } else if (cableDiam >= 17 && cableDiam <= 24) {
+        prensacablesPorRemate = 5; // 5 × 2 remates = 10 por rienda
+      } else {
+        // Diámetro fuera de rango
+        container.innerHTML = `
+          <div class="flex items-center justify-between py-3 px-4 bg-red-50 rounded-xl border border-red-200">
+            <span class="text-sm text-red-700 font-medium">Diámetro ${cableDiam}mm fuera de rango IRAM 722</span>
+          </div>
+        `;
+        return;
+      }
+
+      // 1 rienda tiene 2 remates
+      const prensacablesPorRienda = prensacablesPorRemate * 2;
+      const totalPrensacables = prensacablesPorRienda * totalRiendas;
+
+      const iconSVG = {
+        tower: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>',
+        cable: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a6 6 0 016 6v10a2 2 0 01-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 21h4a2 2 0 002-2v-4a6 6 0 00-6-6h-4"/></svg>',
+        washer: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke-width="2" fill="white"/></svg>',
+        tension: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>',
+        shackle: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>',
+        bolt: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
+        nut: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0 2c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20"/></svg>',
+        clamp: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6"/></svg>'
+      };
+
+      const materials = [
+        { name: 'Tramos de torre (3m)', qty: totalTramos, unit: 'tramos', iconKey: 'tower' },
+        { name: 'Cable de acero total', qty: totalCableLength.toFixed(1), unit: 'm', iconKey: 'cable' },
+        { name: 'Guardacabos', qty: totalRiendas * 2, unit: 'unidades', iconKey: 'washer' },
+        { name: 'Tensores tipo U', qty: totalRiendas, unit: 'unidades', iconKey: 'tension' },
+        { name: 'Grilletes', qty: totalRiendas, unit: 'unidades', iconKey: 'shackle' },
+        { name: 'Bulones', qty: bulones, unit: 'unidades', iconKey: 'bolt' },
+        { name: 'Tuercas', qty: tuercas, unit: 'unidades', iconKey: 'nut' },
+        { name: 'Arandelas', qty: arandelas, unit: 'unidades', iconKey: 'washer' },
+        { name: 'Prensacables', qty: totalPrensacables, unit: 'unidades', iconKey: 'clamp' }
+      ];
+
+      container.innerHTML = materials.map(mat => `
+        <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+          <div class="flex items-center gap-3">
+            <span class="text-gray-600">${iconSVG[mat.iconKey]}</span>
+            <span class="text-sm text-gray-700">${mat.name}</span>
+          </div>
+          <div class="text-right">
+            <span class="font-semibold text-apple-dark">${mat.qty}</span>
+            <span class="text-xs text-gray-500 ml-1">${mat.unit}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // NUEVO MÓDULO DE FUNDACIONES - TABLA ESTRUCTURAL PURA
+    // 100% DETERMINÍSTICO - Coherente con tipo de torre recomendada
+    function updateFoundations() {
+      const height = state.towerHeight;
+      const anchorCount = state.anchorCount;
+
+      // Determinar tipo de torre recomendada (mismo criterio que updateTowerRecommendation)
+      let towerType = null;
+      for (const tower of towerTypes) {
+        if (height <= tower.maxHeight) {
+          towerType = tower.type;
+          break;
+        }
+      }
+      
+      if (!towerType) {
+        showFoundationsError('Altura fuera de rango estructural definido');
+        return;
+      }
+
+      // Determinar rango de altura según tipo de torre
+      let heightRange = null;
+      
+      if (towerType === 'TA90') {
+        if (height <= 15) heightRange = '6-15';
+      } else if (towerType === 'TA128') {
+        if (height <= 15) heightRange = '9-15';
+        else heightRange = '16-30';
+      } else if (towerType === 'C3512') {
+        if (height <= 30) heightRange = '16-30';
+        else heightRange = '31-36';
+      } else if (towerType === 'C45') {
+        heightRange = '31-45';
+      } else if (towerType === 'C60') {
+        heightRange = '46-60';
+      }
+
+      // Buscar en tabla
+      try {
+        if (!tablaFundaciones[towerType]) {
+          showFoundationsError('Torre no definida en tabla');
+          return;
+        }
+        
+        if (!tablaFundaciones[towerType][heightRange]) {
+          showFoundationsError('Rango de altura no disponible');
+          return;
+        }
+
+        const tableData = tablaFundaciones[towerType][heightRange][anchorCount];
+        
+        if (!tableData) {
+          showFoundationsError('Configuración no disponible en tabla');
+          return;
+        }
+
+        const base = tableData.base;
+        const anclaje = tableData.anclaje;
+
+        // Calcular volumen total
+        const volumeTotal = base.volumen + (anclaje.volumen * anchorCount);
+
+        // Mostrar datos
+        document.getElementById('baseDims').textContent = `${base.largo} × ${base.ancho} × ${base.profundidad} m`;
+        document.getElementById('baseVolume').textContent = `${base.volumen} m³`;
+        document.getElementById('baseConcrete').textContent = base.hormigon;
+
+        document.getElementById('anchorCountDisplay').textContent = anchorCount;
+        document.getElementById('anchorDims').textContent = `${anclaje.largo} × ${anclaje.ancho} × ${anclaje.profundidad} m`;
+        document.getElementById('anchorVolume').textContent = `${anclaje.volumen} m³`;
+        document.getElementById('anchorConcrete').textContent = anclaje.hormigon;
+
+        document.getElementById('totalVolume').textContent = `${volumeTotal.toFixed(2)} m³`;
+
+      } catch (error) {
+        showFoundationsError('Error al acceder a tabla de fundaciones');
+      }
+    }
+
+    function showFoundationsError(message) {
+      document.getElementById('baseDims').textContent = '--';
+      document.getElementById('baseVolume').textContent = '--';
+      document.getElementById('baseConcrete').textContent = '--';
+      document.getElementById('anchorCountDisplay').textContent = '--';
+      document.getElementById('anchorDims').textContent = '--';
+      document.getElementById('anchorVolume').textContent = '--';
+      document.getElementById('anchorConcrete').textContent = '--';
+      document.getElementById('totalVolume').textContent = message;
+    }
+
+    // DOWNLOAD REPORT FUNCTION
+    function downloadReport() {
+      // Gather all user input and calculation results
+      const reportData = {
+        timestamp: new Date().toLocaleString('es-AR'),
+        configuracion: {
+          altura_torre: state.towerHeight,
+          anclajes: state.anchorCount,
+          niveles_rienda: state.guyLevels.length,
+          zona_viento: state.windZone,
+          detalles_anclajes: state.anchors.slice(0, state.anchorCount).map((a, i) => ({
+            numero: i + 1,
+            distancia_m: a.distance,
+            altura_m: a.height
+          })),
+          niveles_rienda_alturas: state.guyLevels
+        }
+      };
+
+      // Get tower recommendation
+      let towerType = null;
+      for (const tower of towerTypes) {
+        if (state.towerHeight <= tower.maxHeight) {
+          towerType = tower.type;
+          break;
+        }
+      }
+
+      // Get cable details
+      let cableDetails = [];
+      state.guyLevels.forEach((levelHeight, i) => {
+        let totalLength = 0;
+        state.anchors.slice(0, state.anchorCount).forEach(anchor => {
+          const dx = anchor.distance;
+          const dy = levelHeight - anchor.height;
+          totalLength += Math.sqrt(dx * dx + dy * dy);
+        });
+        const avgLength = totalLength / state.anchorCount;
+        const avgAnchor = state.anchors.slice(0, state.anchorCount).reduce((acc, a) => ({
+          distance: acc.distance + a.distance / state.anchorCount,
+          height: acc.height + a.height / state.anchorCount
+        }), { distance: 0, height: 0 });
+        const angle = Math.atan2(levelHeight - avgAnchor.height, avgAnchor.distance) * (180 / Math.PI);
+
+        cableDetails.push({
+          nivel: i + 1,
+          altura_m: levelHeight,
+          longitud_cable_m: (avgLength + 0.9).toFixed(1),
+          angulo_grados: angle.toFixed(1)
+        });
+      });
+
+      // Get materials
+      const totalCableLength = cableDetails.reduce((sum, cd) => sum + parseFloat(cd.longitud_cable_m), 0);
+      const totalRiendas = state.guyLevels.length * state.anchorCount;
+      const largoTramo = 3;
+      const totalTramos = Math.ceil(state.towerHeight / largoTramo);
+      const uniones = totalTramos - 1;
+      const cableDiamData = calculateCableDiameter(state.towerHeight, state.windZone, state.anchorCount);
+      
+      // Get foundations data
+      let foundationData = {};
+      let towerTypeKey = towerType;
+      let heightRange = null;
+      
+      if (towerTypeKey === 'TA90') {
+        if (state.towerHeight <= 15) heightRange = '6-15';
+      } else if (towerTypeKey === 'TA128') {
+        if (state.towerHeight <= 15) heightRange = '9-15';
+        else heightRange = '16-30';
+      } else if (towerTypeKey === 'C3512') {
+        if (state.towerHeight <= 30) heightRange = '16-30';
+        else heightRange = '31-36';
+      } else if (towerTypeKey === 'C45') {
+        heightRange = '31-45';
+      } else if (towerTypeKey === 'C60') {
+        heightRange = '46-60';
+      }
+
+      if (tablaFundaciones[towerTypeKey] && tablaFundaciones[towerTypeKey][heightRange]) {
+        const tableData = tablaFundaciones[towerTypeKey][heightRange][state.anchorCount];
+        foundationData = {
+          base: tableData.base,
+          anclaje: tableData.anclaje,
+          volumen_total: (tableData.base.volumen + tableData.anclaje.volumen * state.anchorCount).toFixed(2)
+        };
+      }
+
+      // Generate CSV content
+      let csvContent = "REPORTE TÉCNICO - TORRE ARRIOSTRADA DESIGNER\n";
+      csvContent += "==========================================\n\n";
+      csvContent += `GENERADO: ${reportData.timestamp}\n`;
+      csvContent += `NORMATIVA: CIRSOC 101/102 (Argentina)\n\n`;
+
+      // CONFIGURATION SECTION
+      csvContent += "CONFIGURACIÓN DE ENTRADA\n";
+      csvContent += "------------------------\n";
+      csvContent += `Altura de Torre,${state.towerHeight},m\n`;
+      csvContent += `Cantidad de Anclajes,${state.anchorCount},unidades\n`;
+      csvContent += `Niveles de Rienda,${state.guyLevels.length},niveles\n`;
+      csvContent += `Zona de Viento,${state.windZone}\n\n`;
+
+      csvContent += "DETALLES DE ANCLAJES\n";
+      csvContent += "--------------------\n";
+      csvContent += "Anclaje,Distancia (m),Altura (m)\n";
+      state.anchors.slice(0, state.anchorCount).forEach((a, i) => {
+        csvContent += `${String.fromCharCode(65 + i)},${a.distance},${a.height}\n`;
+      });
+      csvContent += "\nNiveles de Rienda (alturas)\n";
+      csvContent += "Nivel,Altura (m)\n";
+      state.guyLevels.forEach((h, i) => {
+        csvContent += `${i + 1},${h}\n`;
+      });
+      csvContent += "\n";
+
+      // RECOMMENDATIONS SECTION
+      csvContent += "RECOMENDACIONES TÉCNICAS\n";
+      csvContent += "------------------------\n";
+      csvContent += `Torre Recomendada,${towerType}\n`;
+      csvContent += `Diámetro Cable de Acero,${cableDiamData.diameter},mm (7x19)\n`;
+      csvContent += `Cable Total Aproximado,${totalCableLength.toFixed(1)},m\n\n`;
+
+      // CABLE DETAILS
+      csvContent += "DETALLE DE RIENDAS POR NIVEL\n";
+      csvContent += "----------------------------\n";
+      csvContent += "Nivel,Altura (m),Longitud Cable (m),Ángulo (°)\n";
+      cableDetails.forEach(cd => {
+        csvContent += `${cd.nivel},${cd.altura_m},${cd.longitud_cable_m},${cd.angulo_grados}\n`;
+      });
+      csvContent += "\n";
+
+      // MATERIALS SECTION
+      csvContent += "MATERIALES ESTIMADOS\n";
+      csvContent += "--------------------\n";
+      csvContent += `Tramos de Torre (3m),${totalTramos},unidades\n`;
+      csvContent += `Cable de Acero,${totalCableLength.toFixed(1)},metros\n`;
+      csvContent += `Guardacabos,${totalRiendas * 2},unidades\n`;
+      csvContent += `Tensores tipo U,${totalRiendas},unidades\n`;
+      csvContent += `Grilletes,${totalRiendas},unidades\n`;
+      csvContent += `Bulones,${uniones * 3},unidades\n`;
+      csvContent += `Tuercas,${uniones * 3},unidades\n`;
+      csvContent += `Arandelas,${uniones * 3},unidades\n`;
+      const prensacablesPorRemate = cableDiamData.diameter >= 5 && cableDiamData.diameter <= 9 ? 3 : 
+                                    cableDiamData.diameter >= 10 && cableDiamData.diameter <= 16 ? 4 : 5;
+      csvContent += `Prensacables,${prensacablesPorRemate * 2 * totalRiendas},unidades\n\n`;
+
+      // FOUNDATIONS SECTION
+      csvContent += "FUNDACIONES PRELIMINARES\n";
+      csvContent += "------------------------\n";
+      csvContent += `Torre Tipo,${towerTypeKey}\n`;
+      csvContent += `Rango de Altura,${heightRange}\n\n`;
+      csvContent += "BASE CENTRAL\n";
+      csvContent += `Largo,${foundationData.base.largo},m\n`;
+      csvContent += `Ancho,${foundationData.base.ancho},m\n`;
+      csvContent += `Profundidad,${foundationData.base.profundidad},m\n`;
+      csvContent += `Volumen,${foundationData.base.volumen},m³\n`;
+      csvContent += `Tipo Hormigón,${foundationData.base.hormigon}\n\n`;
+      csvContent += "ANCLAJES (POR UNIDAD)\n";
+      csvContent +=(`Cantidad,${state.anchorCount},unidades\n`);
+      csvContent += `Largo,${foundationData.anclaje.largo},m\n`;
+      csvContent += `Ancho,${foundationData.anclaje.ancho},m\n`;
+      csvContent += `Profundidad,${foundationData.anclaje.profundidad},m\n`;
+      csvContent += `Volumen por anclaje,${foundationData.anclaje.volumen},m³\n`;
+      csvContent += `Tipo Hormigón,${foundationData.anclaje.hormigon}\n`;
+      csvContent += `Volumen total anclajes,${(foundationData.anclaje.volumen * state.anchorCount).toFixed(2)},m³\n\n`;
+      csvContent += "VOLUMEN TOTAL DE HORMIGÓN\n";
+      csvContent += `Total,${foundationData.volumen_total},m³\n\n`;
+
+      // NOTES
+      csvContent += "NOTAS IMPORTANTES\n";
+      csvContent += "-----------------\n";
+      csvContent += "- Las alturas máximas son orientativas para condiciones estándar de viento moderado.\n";
+      csvContent += "- Se requiere cálculo estructural definitivo según CIRSOC 101/102.\n";
+      csvContent += "- Los diámetros de cable son preliminares, verificar según cargas finales.\n";
+      csvContent += "- Las fundaciones dependen del tipo de terreno y capacidad portante.\n";
+      csvContent += "- Este reporte es una herramienta de predimensionamiento, no reemplaza el proyecto definitivo.\n";
+
+      // Download CSV file
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent));
+      element.setAttribute('download', `Torre_Arriostrada_${state.towerHeight}m_${new Date().toISOString().split('T')[0]}.csv`);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+
+      // Show success feedback
+      showDownloadSuccess();
+    }
+
+    function showDownloadSuccess() {
+      const button = event.target.closest('button');
+      const originalHTML = button.innerHTML;
+      button.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> ¡Descargado!';
+      button.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+      button.classList.remove('bg-green-600', 'hover:bg-green-700');
+      
+      setTimeout(() => {
+        button.innerHTML = originalHTML;
+        button.classList.add('bg-green-600', 'hover:bg-green-700');
+        button.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+      }, 2000);
+    }
+
+    // CABLE DIAMETER CALCULATION ACCORDING TO CIRSOC 101/102
+    // Based on tower height, wind zone, and number of anchor points
+    function calculateCableDiameter(height, windZone, anchorCount) {
+      // Cable diameter matrix according to CIRSOC 101/102
+      // Structure: [height range] -> [wind zone] -> { 3 anchors, 4 anchors }
+      
+      const cableMatrix = {
+        // Heights 9-15m (Ultralight tower)
+        "9-15": {
+          "bajo": { 3: 5, 4: 5 },
+          "medio": { 3: 6, 4: 5 },
+          "alto": { 3: 6, 4: 6 },
+          "extremo": { 3: 7, 4: 6 }
+        },
+        // Heights 16-30m (Light tower)
+        "16-30": {
+          "bajo": { 3: 6, 4: 5 },
+          "medio": { 3: 6, 4: 6 },
+          "alto": { 3: 7, 4: 6 },
+          "extremo": { 3: 8, 4: 7 }
+        },
+        // Heights 31-45m (Medium tower)
+        "31-45": {
+          "bajo": { 3: 6, 4: 6 },
+          "medio": { 3: 7, 4: 6 },
+          "alto": { 3: 8, 4: 7 },
+          "extremo": { 3: 10, 4: 8 }
+        },
+        // Heights 46-60m (Medium-Heavy tower)
+        "46-60": {
+          "bajo": { 3: 7, 4: 6 },
+          "medio": { 3: 8, 4: 7 },
+          "alto": { 3: 10, 4: 8 },
+          "extremo": { 3: 12, 4: 10 }
+        }
+      };
+
+      // Determine height range
+      let range = "9-15";
+      if (height > 15 && height <= 30) range = "16-30";
+      else if (height > 30 && height <= 45) range = "31-45";
+      else if (height > 45 && height <= 60) range = "46-60";
+
+      // Get diameter from matrix
+      const rangeData = cableMatrix[range];
+      const windData = rangeData[windZone] || rangeData["medio"];
+      const diameter = windData[anchorCount] || windData[3];
+
+      return {
+        diameter: diameter,
+        range: range,
+        wind: windZone,
+        anchors: anchorCount
+      };
+    }
+
+    // Initialize on load
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9db3429ae5cc3012',t:'MTc3MzMyMzM0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
